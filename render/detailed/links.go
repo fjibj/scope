@@ -71,8 +71,8 @@ var (
 			// NB: Pods need to be labeled and selected by their respective Service name, meaning:
 			// - The Service's `spec.selector` needs to select on `name`
 			// - The Service's `metadata.name` needs to be the same value as `spec.selector.name`
-			docker.CPUTotalUsage: `namespace_label_name:container_cpu_usage_seconds_total:sum_rate{label_name="{{label}}",namespace="{{namespace}}"}`,
-			docker.MemoryUsage:   `namespace_label_name:container_memory_usage_bytes:sum{label_name="{{label}}",namespace="{{namespace}}"}`,
+			docker.CPUTotalUsage: `sum(label_replace(sum(rate(container_cpu_usage_seconds_total{image!="",namespace="{{namespace}}"}[5m])) by (pod_name, namespace), "pod", "$1", "pod_name", "(.*)") * on (pod) group_right(pod_name) kube_pod_labels{_weave_namespace="weave",_weave_service="kube-state-metrics",label_name="{{label}}"})`,
+			docker.MemoryUsage:   `sum(label_replace(sum(container_memory_usage_bytes{image!="",namespace="{{namespace}}"}) by (pod_name, namespace), "pod", "$1", "pod_name", "(.*)") * on (pod) group_right(pod_name) kube_pod_labels{_weave_namespace="weave",_weave_service="kube-state-metrics",label_name="{{label}}"})`,
 		},
 	}
 )
